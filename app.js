@@ -1,3 +1,5 @@
+
+
 class Gallery {
   constructor() {
       this.scene = new THREE.Scene();
@@ -81,56 +83,67 @@ class Gallery {
   }
 
   setupEventListeners() {
-      window.addEventListener("keydown", (e) => this.keys[e.key] = true);
-      window.addEventListener("keyup", (e) => this.keys[e.key] = false);
-      window.addEventListener("resize", () => {
-          this.camera.aspect = window.innerWidth / window.innerHeight;
-          this.camera.updateProjectionMatrix();
-          this.renderer.setSize(window.innerWidth, window .innerHeight);
-      });
+    window.addEventListener("keydown", (e) => this.keys[e.key] = true);
+    window.addEventListener("keyup", (e) => this.keys[e.key] = false);
+    window.addEventListener("resize", () => {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+    });
 
-      document.addEventListener('click', () => {
-          if (!this.isPointerLocked) {
-              this.enterPointerLock();
-          }
-      });
+    document.addEventListener('click', () => {
+        if (!this.isPointerLocked) {
+            this.enterPointerLock();
+        }
+    });
 
-      document.addEventListener('pointerlockchange', () => {
-          this.isPointerLocked = document.pointerLockElement === this.renderer.domElement;
-          if (this.isPointerLocked) {
-              document.addEventListener('mousemove', this.onMouseMove.bind(this));
-          } else {
-              document.removeEventListener('mousemove', this.onMouseMove.bind(this));
-          }
-      });
-  }
+    document.addEventListener('pointerlockchange', () => {
+        this.isPointerLocked = document.pointerLockElement === this.renderer.domElement;
+        if (this.isPointerLocked) {
+            document.addEventListener('mousemove', this.onMouseMove.bind(this));
+        } else {
+            document.removeEventListener('mousemove', this.onMouseMove.bind(this));
+        }
+    });
+}
 
-  enterPointerLock() {
-      this.renderer.domElement.requestPointerLock();
-  }
+enterPointerLock() {
+    this.renderer.domElement.requestPointerLock();
+}
 
-  onMouseMove(event) {
-      const movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-      const movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+onMouseMove(event) {
+    if (!this.isPointerLocked) return;
 
-      this.camera.rotation.y -= movementX * 0.002; 
-      this.camera.rotation.x -= movementY * 0.002;
-      this.camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.camera.rotation.x)); 
-  }
+    const movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+    const movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
-  handleControls() {
-      const speed = 0.2;
-      if (this.keys["w"]) this.camera.position.z -= speed;
-      if (this.keys["s"]) this.camera.position.z += speed;
-      if (this.keys["a"]) this.camera.position.x -= speed;
-      if (this.keys["d"]) this.camera.position.x += speed;
-  }
+    this.camera.rotation.y -= movementX * 0.002; 
+    this.camera.rotation.x -= movementY * 0.002;
+    this.camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.camera.rotation.x)); 
+}
 
-  animate() {
-      this.handleControls();
-      this.renderer.render(this.scene, this.camera);
-      requestAnimationFrame(() => this.animate());
-  }
+handleControls() {
+  const speed = 0.1;
+        const forward = new THREE.Vector3();
+        this.camera.getWorldDirection(forward);
+        forward.y = 0; 
+        forward.normalize();
+
+        
+        const right = new THREE.Vector3();
+        right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+
+        if (this.keys["w"]) this.camera.position.add(forward.clone().multiplyScalar(speed));
+        if (this.keys["s"]) this.camera.position.add(forward.clone().negate().multiplyScalar(speed));
+        if (this.keys["a"]) this.camera.position.add(right.clone().negate().multiplyScalar(speed)); // Move left
+        if (this.keys["d"]) this.camera.position.add(right.clone().multiplyScalar(speed)); // Move right
+}
+
+animate() {
+    this.handleControls();
+    this.renderer.render(this.scene, this.camera);
+    requestAnimationFrame(() => this.animate());
+}
 }
 
 const gallery = new Gallery();
