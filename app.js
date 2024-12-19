@@ -96,11 +96,12 @@ class Gallery {
         rightWall.position.y = this.gallerySize.height / 2;
         this.scene.add(rightWall);
 
-        const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(this.gallerySize.width , this.gallerySize.depth), this.wallMaterial);
+        const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(this.gallerySize.width, this.gallerySize.depth), this.wallMaterial);
         ceiling.rotation.x = Math.PI / 2; 
         ceiling.position.y = this.gallerySize.height; 
         this.scene.add(ceiling);
     }
+
     loadArtworks() {
         const loader = new THREE.TextureLoader();
     
@@ -138,8 +139,12 @@ class Gallery {
             this.isPointerLocked = document.pointerLockElement === this.renderer.domElement;
             if (this.isPointerLocked) {
                 document.addEventListener('mousemove', this.onMouseMove.bind(this));
+                document.getElementById('instructions').style.display = 'none';
+                document.getElementById('blocker').style.display = 'none';
             } else {
-                document.removeEventListener('mousemove', this.onMouseMove.bind(this));
+                document.removeEventListener('mousemove', this.onMouseMove .bind(this));
+                document.getElementById('blocker').style.display = 'block';
+                document.getElementById('instructions').style.display = '';
             }
         });
 
@@ -149,6 +154,11 @@ class Gallery {
             } else if (e.key === 'p') {
                 this.previousTrack();
             }
+        });
+
+        const instructions = document.getElementById('instructions');
+        instructions.addEventListener('click', () => {
+            this.enterPointerLock();
         });
     }
 
@@ -220,16 +230,13 @@ class Gallery {
             }
         }
 
-        
         this.checkCollision();
     }
 
     checkCollision() {
         const halfWidth = this.gallerySize.width / 2;
         const halfDepth = this.gallerySize.depth / 2;
-        const height = this.gallerySize.height;
 
-        
         if (this.camera.position.x < -halfWidth || this.camera.position.x > halfWidth ||
             this.camera.position.z < -halfDepth || this.camera.position.z > halfDepth) {
             
@@ -239,7 +246,7 @@ class Gallery {
 
     animate() {
         this.handleControls();
- this.renderer.render(this.scene, this.camera);
+        this.renderer.render(this.scene, this.camera);
         requestAnimationFrame(() => this.animate());
     }
 }
